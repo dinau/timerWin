@@ -1,21 +1,21 @@
+# !!! IMPORTANT !!! This program dosn't work well.
 # ---
-# timer.nim --- Timer module
+# timerThread.nim --- Timer Thread module
 # ---
 import wNim/[wApp, wFrame]
 import winim/lean
 
 type
     TTimer* = ref object
-        id: UINT_PTR
-        fn: TIMERPROC
+        id: PTP_TIMER
+        fn: PTP_TIMER_CALLBACK
         interval: int
         fStart: bool
         window: wFrame
 
-proc Timer*(window: wFrame = nil, id: int, timerProc: TIMERPROC = nil, interval = 100):TTimer =
+proc Timer*(window: wFrame = nil, id: int, timerProc: PTP_TIMER_CALLBACK = nil, interval = 100):TTimer =
     result = new TTimer
     result.fn = timerProc
-    result.id = cast[UINT_PTR](id)
     result.interval = interval
     result.window = window
     result.fStart = false
@@ -23,18 +23,27 @@ proc Timer*(window: wFrame = nil, id: int, timerProc: TIMERPROC = nil, interval 
 proc start*(self: TTimer) =
     if not self.fStart:
         self.fStart = true
-        if self.window != nil:
-            SetTimer(self.window.handle, self.id, self.interval.UINT, self.fn)
+        var ulStartDelay: ULARGE_INTEGER
+        #ulStartDelay.QuadPart = -30000000.ULONGLONG # 3sec = 100nsec x (-30000000)
+        ulStartDelay.QuadPart = -1.ULONGLONG
+        var ftst: FILETIME
+        ftst.dwHighDateTime = ulStartDelay.HighPart
+        ftst.dwLowDateTime = ulStartDelay.LowPart
+        self.id = CreateThreadpoolTimer(self.fn, nil, nil)
+        if self.id == nil:
+            echo "Create Error!: " & $GetLastError()
+            quit 0
         else:
-            self.id = SetTimer(cast[HWND](nil), self.id, self.interval.UINT, self.fn)
+            SetThreadPoolTimer(self.id,cast[PFILETIME](ftst.addr),self.interval.DWORD,0)
 
 proc stop*(self: TTimer) =
     if self.fStart:
         self.fStart = false
-        if self.window != nil:
-            KillTimer(self.window.handle, self.id)
-        else:
-            KillTimer(cast[HWND](nil), self.id)
+        if self.id != nil:
+            SetThreadPoolTimer(self.id,nil,0,0)
+            WaitForThreadpoolTimerCallbacks(self.id,true)
+            CloseThreadpoolTimer(self.id)
+            self.id = nil
 
 proc reStart*(self: TTimer,interval:int) =
     self.stop()
@@ -77,11 +86,11 @@ when isMainModule:
     type timerID = enum
         idTimer1 = 10000, idTimer2
 
-    proc timer1Proc(hWnd: HWND, message: UINT, pIdTimer: UINT_PTR, dwTime: DWORD): VOID{.stdcall.} =
+    proc timer1Proc(Instance: PTP_CALLBACK_INSTANCE, Context: PVOID, Timer: PTP_TIMER): VOID {.stdcall.} =
         var count {.global.} = 0
         count += 1
         btn1.label = "Timer1:    " & $count
-    proc timer2Proc(hWnd: HWND, message: UINT, pIdTimer: UINT_PTR, dwTime: DWORD): VOID{.stdcall.} =
+    proc timer2Proc(Instance: PTP_CALLBACK_INSTANCE, Context: PVOID, Timer: PTP_TIMER): VOID {.stdcall.} =
         var count {.global.} = 0
         count += 1
         btn2.label = "Timer2:    " & $count
@@ -111,4 +120,6 @@ when isMainModule:
     fmMain.show()
 
     app.mainLoop()
+
+
 

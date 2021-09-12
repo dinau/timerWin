@@ -1,4 +1,5 @@
 TARGET= timer
+#TARGET= timerThread
 
 #TOOLCHAIN = clang
 TOOLCHAIN ?= tcc
