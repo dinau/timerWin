@@ -15,9 +15,9 @@ Timer module for wNim
 	1. Compile with [tcc](https://bellard.org/tcc/)  
   $ make   
 	1. Compile with gcc   
-  $ make TOOLCHAIN=gcc  
+  $ make TC=gcc  
 	1. Compile with clang   
-  $ make TOOLCHAIN=clang  
+  $ make TC=clang  
 
 # Execute timer.exe:  
-![alt](timerWin.png)
+![alt](timerWin.gif)

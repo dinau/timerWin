@@ -53,8 +53,7 @@ when isMainModule:
     # -------------------
     # Test program
     # -------------------
-    import wNim/[wApp, wFrame, wEvent, wPanel, wButton]
-    import winim/lean
+    import wNim/[wEvent, wPanel, wButton]
 
     # --- GUI definition
     let app = App(wSystemDpiAware)
