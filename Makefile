@@ -1,26 +1,29 @@
 TARGET= timer
 #TARGET= timerThread
 
-#TOOLCHAIN = clang
-TOOLCHAIN ?= tcc
+#TC = clang
+TC ?= tcc
 
-ifneq ($(TOOLCHAIN),tcc)
+ifneq ($(TC),tcc)
 OPT += -d:danger -d:strip
 OPT += --opt:size
 else
-TOOLCHAIN = tcc
+TC = tcc
 endif
 
 OPT += --app:gui
 OPT += --showAllMismatches:on
 OPT += --threads:on
 #OPT += -d:useWinXP
-OPT += --cc:$(TOOLCHAIN)
+OPT += --cc:$(TC)
 
-ifneq ($(TOOLCHAIN),tcc)
+ifneq ($(TC),tcc)
 OPT_GCC +=--passC:-ffunction-sections --passC:-fdata-sections
 OPT_GCC +=--passL:-Wl,--gc-sections
 OPT += $(OPT_GCC)
+endif
+ifeq ($(TC),gcc)
+OPT += --passC:-flto --passL:-flto
 endif
 
 DEST_EXE = $(addsuffix .exe,$(TARGET))
