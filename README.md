@@ -20,4 +20,4 @@ Timer module for wNim
   $ make TC=clang  
 
 # Execute timer.exe:  
-![alt](timerWin.gif)
+![alt](timerwin.gif)
